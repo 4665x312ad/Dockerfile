@@ -1,19 +1,26 @@
-FROM debian
-RUN apt update
-RUN DEBIAN_FRONTEND=noninteractive apt install qemu-kvm *zenhei* xz-utils dbus-x11 curl firefox-esr gnome-system-monitor mate-system-monitor  git xfce4 xfce4-terminal tightvncserver wget   -y
-RUN wget https://github.com/novnc/noVNC/archive/refs/tags/v1.2.0.tar.gz
-RUN curl -LO https://proot.gitlab.io/proot/bin/proot
-RUN chmod 755 proot
-RUN mv proot /bin
-RUN tar -xvf v1.2.0.tar.gz
-RUN mkdir  $HOME/.vnc
-RUN echo 'luo' | vncpasswd -f > $HOME/.vnc/passwd
-RUN chmod 600 $HOME/.vnc/passwd
-RUN echo 'whoami ' >>/luo.sh
-RUN echo 'cd ' >>/luo.sh
-RUN echo "su -l -c  'vncserver :2000 -geometry 1280x800' "  >>/luo.sh
-RUN echo 'cd /noVNC-1.2.0' >>/luo.sh
-RUN echo './utils/launch.sh  --vnc localhost:7900 --listen 8099 ' >>/luo.sh
-RUN chmod 755 /luo.sh
-EXPOSE 8099
-CMD  /luo.sh
+FROM alpine:latest
+ENV NOVNC_VERSION=v1.2.0 \
+    VNC_PORT=2000 \
+    VNC_RESOLUTION=1280x800 \
+    NOVNC_PORT=8099
+RUN apk update && \
+    apk add --no-cache qemu-system-x86_64 zenhei-font-ttf xz dbus curl firefox-esr gnome-system-monitor mate-system-monitor git xfce4 xfce4-terminal tightvncserver wget && \
+    apk add --no-cache --virtual .build-deps tar && \
+    wget https://github.com/novnc/noVNC/archive/refs/tags/${NOVNC_VERSION}.tar.gz && \
+    tar -xvf ${NOVNC_VERSION}.tar.gz && \
+    mv noVNC-${NOVNC_VERSION} /noVNC && \
+    rm ${NOVNC_VERSION}.tar.gz && \
+    apk del .build-deps && \
+    rm -rf /var/cache/apk/*
+RUN mkdir $HOME/.vnc && \
+    echo 'chu' | vncpasswd -f > $HOME/.vnc/passwd && \
+    chmod 600 $HOME/.vnc/passwd
+RUN echo '#!/bin/sh' > /chu.sh && \
+    echo 'cd /' >> /chu.sh && \
+    echo "vncserver :${VNC_PORT} -geometry ${VNC_RESOLUTION}" >> /chu.sh && \
+    echo 'cd /noVNC' >> /chu.sh && \
+    echo "./utils/launch.sh --vnc localhost:${VNC_PORT} --listen ${NOVNC_PORT}" >> /chu.sh && \
+    chmod 755 /chu.sh
+HEALTHCHECK CMD netstat -tuln | grep -q ${NOVNC_PORT} || exit 1
+EXPOSE ${NOVNC_PORT}
+CMD ["/bin/sh", "/chu.sh"]
