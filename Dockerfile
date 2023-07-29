@@ -4,7 +4,7 @@ ENV NOVNC_VERSION=v1.2.0 \
     VNC_RESOLUTION=1280x800 \
     NOVNC_PORT=8099
 RUN apk update && \
-    apk add --no-cache qemu-system-x86_64 zenhei-font-ttf xz dbus curl firefox-esr gnome-system-monitor mate-system-monitor git xfce4 xfce4-terminal tightvncserver wget && \
+    apk add --no-cache qemu-system-x86_64 ttf-dejavu xz dbus curl firefox-esr gnome-system-monitor mate-system-monitor git xfce4 xfce4-terminal tigervnc-server wget && \
     apk add --no-cache --virtual .build-deps tar && \
     wget https://github.com/novnc/noVNC/archive/refs/tags/${NOVNC_VERSION}.tar.gz && \
     tar -xvf ${NOVNC_VERSION}.tar.gz && \
